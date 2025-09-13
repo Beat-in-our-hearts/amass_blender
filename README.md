@@ -1,10 +1,19 @@
 # amass_blender
 A format for exporting dynamic compensation data to AMASS-style SMPL-X
 
+## download body_models
+
+- https://smpl.is.tue.mpg.de/download.php
+- https://smpl-x.is.tue.mpg.de/download.php
+
+
 ## Setup
 
-[GitHub - nghorbani/amass: Data preparation and loader for AMASS](https://github.com/nghorbani/amass)
-[GitHub - nghorbani/human_body_prior: VPoser: Variational Human Pose Prior](https://github.com/nghorbani/human_body_prior)
+Thanks for the code sharing of the following open-source repositories:
+
+- [GitHub - nghorbani/amass: Data preparation and loader for AMASS](https://github.com/nghorbani/amass)
+- [GitHub - nghorbani/human_body_prior: VPoser: Variational Human Pose Prior](https://github.com/nghorbani/human_body_prior)
+
 
 ```
 git clone https://github.com/Beat-in-our-hearts/amass_blender.git
