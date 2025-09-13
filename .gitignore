@@ -205,3 +205,10 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+output/
+amass/
+human_body_prior/
+body_models/smpl/
+body_models/smplh/
+body_models/smplx/
