@@ -25,9 +25,9 @@ body_model_dict = {
 }
 
 pose_list = {
-    "smpl": ['pose_body'],
-    "smplh": ['pose_body', 'pose_hand'],
-    "smplx": ['pose_body', 'pose_hand', 'pose_jaw', 'pose_eye'],
+    "smpl": ['pose_body', 'betas'],
+    "smplh": ['pose_body', 'betas', 'pose_hand'],
+    "smplx": ['pose_body', 'betas', 'pose_hand', 'pose_jaw', 'pose_eye'],
 }
 
 comp_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -43,7 +43,7 @@ mv = MeshViewer(width=imw, height=imh, use_offscreen=True)
 for amass_npz_fname in amass_npz_fname_list:
     print(f"Processing file: {amass_npz_fname}")
     
-    motion_name = amass_npz_fname.split('.')[-2]
+    motion_name = os.path.basename(amass_npz_fname).replace('.npz','')
     bdata = np.load(amass_npz_fname)
 
     num_betas = 16 # number of body parameters
@@ -86,6 +86,6 @@ for amass_npz_fname in amass_npz_fname_list:
         body_image_wofingers = mv.render(render_wireframe=False)
         image_list.append(body_image_wofingers)
     
-    video_path = f'./output/videos/motion_{motion_name}.mp4'
+    video_path = f'./output/videos/{motion_name}.mp4'
     imageio.mimwrite(video_path, image_list, fps=30)
     print('Video saved to {}'.format(video_path))

@@ -52,16 +52,18 @@ def convert_to_smplx_format(data_dict):
             axis_angle_poses[:, j] = rot_matrix_to_axis_angle(local_rot_mats[:, j])
         
         # 重塑为SMPL-X格式: (N, J*3)
-        poses = axis_angle_poses.reshape(num_frames, -1)
+        poses = axis_angle_poses.reshape(num_frames, -1)[:-1]
+        global_trans = global_trans[:-1]
         
         # 创建SMPL-X格式的数据
         smplx_data = {
             'gender': 'neutral',  # 默认性别
             'surface_model_type': 'smplx',
+            'mocap_frame_rate': 60,
             'root_orient': poses[:, :3].astype(np.float32),  # 根骨骼旋转
             'pose_body': poses[:, 3:66].astype(np.float32),  # 身体姿态 (21 joints * 3)
             'trans': global_trans.astype(np.float32),
-            'betas': np.zeros((10,), dtype=np.float32),  # 默认形状参数
+            'betas': np.zeros((16,), dtype=np.float32),  # 默认形状参数
             'poses': poses.astype(np.float32),
             'pose_hand': poses[:, 66:156].astype(np.float32),  # 手部姿态 (30 joints * 3)
             'pose_jaw': poses[:, 156:159].astype(np.float32),   # 下颌姿态 (1 joint * 3)

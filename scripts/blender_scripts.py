@@ -33,22 +33,24 @@ num_joints = len(bone_names)
 
 # define frame
 start_frame = {
-    'SMPLX-neutral.halfsquat': 0,
-    'SMPLX-neutral.legswing': 0, 
-    'SMPLX-neutral.armswing': 0,
+    'SMPLX-neutral.halfsquat': 4,
+    'SMPLX-neutral.legswing': 4, 
+    'SMPLX-neutral.armswing': 4,
 }
 
 end_frame = {
-    'SMPLX-neutral.halfsquat': 2939,
-    'SMPLX-neutral.legswing': 1677, 
-    'SMPLX-neutral.armswing': 573,
+    'SMPLX-neutral.halfsquat': 2935,
+    'SMPLX-neutral.legswing': 1400, 
+    'SMPLX-neutral.armswing': 570,
 }
 
-num_frames = {
-    'SMPLX-neutral.halfsquat': 2939,
-    'SMPLX-neutral.legswing': 1677, 
-    'SMPLX-neutral.armswing': 573,
-}
+# num_frames = {
+#     'SMPLX-neutral.halfsquat': 2939,
+#     'SMPLX-neutral.legswing': 1400, 
+#     'SMPLX-neutral.armswing': 573,
+# }
+num_frames = {name: end_frame[name] - start_frame[name] + 1 for name in armature_name_list}
+
 
 # init buffers
 global_translations = {
@@ -58,7 +60,7 @@ local_rotations = {
     armature_name: np.zeros((num_frames[armature_name], num_joints, 3, 3), dtype=np.float32) for armature_name in armature_name_list
 }
 
-max_frames = max(num_frames.values())
+max_frames = max({name: end_frame[name] for name in armature_name_list}.values())
 
 for frame_id in range(max_frames):
     if frame_id % 100 == 0:
@@ -68,12 +70,12 @@ for frame_id in range(max_frames):
     
     for armature_name, armature_obj in armature_obj_list.items():
         
-        if frame_id >= num_frames[armature_name]:
+        if frame_id < start_frame[armature_name] or frame_id > end_frame[armature_name]:
             continue
         
         root_bone = armature_obj.pose.bones['pelvis']
         root_matrix = armature_obj.matrix_world @ root_bone.matrix
-        global_translations[armature_name][frame_id] = root_matrix.to_translation()
+        global_translations[armature_name][frame_id-start_frame[armature_name]] = root_matrix.to_translation()
         
         for joint_id, bone_name in enumerate(bone_names):
             pose_bone = armature_obj.pose.bones[bone_name]
@@ -84,7 +86,7 @@ for frame_id in range(max_frames):
                 local_matrix = pose_bone.matrix
                 
             rot_matrix = local_matrix.to_3x3().normalized()
-            local_rotations[armature_name][frame_id, joint_id] = np.array(rot_matrix)
+            local_rotations[armature_name][frame_id-start_frame[armature_name], joint_id] = np.array(rot_matrix)
             
 print("save all smplx motion data")
 
@@ -95,7 +97,8 @@ save_dir = os.path.join(documents_dir, "SMPLX_motion_data")
 os.makedirs(save_dir, exist_ok=True)
 
 for armature_name in armature_name_list:
-    np.savez(os.path.join(save_dir, f"{armature_name}.npy"),
+    save_file_path = os.path.join(save_dir, f"{armature_name}.npz")
+    np.savez(save_file_path,
              global_translations=global_translations[armature_name], 
              local_rotations=local_rotations[armature_name])
-    print(f"Saved {armature_name} motion data to {save_dir}")
+    print(f"Saved {armature_name} motion data to {save_file_path}")
