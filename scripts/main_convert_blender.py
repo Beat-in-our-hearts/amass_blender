@@ -30,6 +30,30 @@ def rot_matrix_to_axis_angle(rot_mat):
         axis_angle_flat = np.array([Rotation.from_matrix(m).as_rotvec() for m in rot_mat_flat])
         return axis_angle_flat.reshape(*original_shape, 3)
 
+
+def rotate_root_orientation(root_orient, angle_deg):
+    """
+    绕X轴旋转根骨骼方向
+    参数:
+        root_orient: (N, 3) 轴角表示的根骨骼旋转
+        angle_deg: 旋转角度 (度)
+    返回:
+        rotated_root_orient: (N, 3) 旋转后的根骨骼旋转
+    """
+    angle_rad = np.deg2rad(angle_deg)
+    rot_correction = Rotation.from_euler('x', angle_rad).as_matrix()  # (3, 3)
+    
+    num_frames = root_orient.shape[0]
+    rotated_root_orient = np.zeros_like(root_orient)
+    
+    for i in range(num_frames):
+        R = Rotation.from_rotvec(root_orient[i]).as_matrix()  # (3, 3)
+        R_corrected = rot_correction @ R
+        rotated_root_orient[i] = Rotation.from_matrix(R_corrected).as_rotvec()
+    
+    return rotated_root_orient
+
+
 def convert_to_smplx_format(data_dict):
     """
     将Blender导出的数据转换为SMPL-X格式
@@ -43,7 +67,7 @@ def convert_to_smplx_format(data_dict):
     for name, data in data_dict.items():
         global_trans = data['global_translations']  # (N, 3)
         local_rot_mats = data['local_rotations']    # (N, J, 3, 3)
-        
+      
         num_frames, num_joints = local_rot_mats.shape[0], local_rot_mats.shape[1]
         
         # 将旋转矩阵转换为轴角格式
@@ -55,12 +79,17 @@ def convert_to_smplx_format(data_dict):
         poses = axis_angle_poses.reshape(num_frames, -1)[:-1]
         global_trans = global_trans[:-1]
         
+        root_orient = poses[:, :3].astype(np.float32) # 根骨骼旋转
+        # 根旋转坐标系矫正 (Blender Z轴向上, SMPL-X Y轴向上)
+        # 这里假设根旋转也需要绕X轴旋转-90度
+        root_orient = rotate_root_orientation(root_orient, 90)
+        
         # 创建SMPL-X格式的数据
         smplx_data = {
             'gender': 'neutral',  # 默认性别
             'surface_model_type': 'smplx',
             'mocap_frame_rate': 60,
-            'root_orient': poses[:, :3].astype(np.float32),  # 根骨骼旋转
+            'root_orient': root_orient,  # 根骨骼旋转
             'pose_body': poses[:, 3:66].astype(np.float32),  # 身体姿态 (21 joints * 3)
             'trans': global_trans.astype(np.float32),
             'betas': np.zeros((16,), dtype=np.float32),  # 默认形状参数
