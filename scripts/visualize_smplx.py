@@ -25,9 +25,9 @@ body_model_dict = {
 }
 
 pose_list = {
-    "smpl": ['pose_body', 'betas'],
-    "smplh": ['pose_body', 'betas', 'pose_hand'],
-    "smplx": ['pose_body', 'betas', 'pose_hand', 'pose_jaw', 'pose_eye'],
+    "smpl": ['pose_body', 'betas', 'root_orient', 'trans'],
+    "smplh": ['pose_body', 'betas', 'root_orient', 'trans', 'pose_hand'],
+    "smplx": ['pose_body', 'betas', 'root_orient', 'trans', 'pose_hand', 'pose_jaw', 'pose_eye'],
 }
 
 comp_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
