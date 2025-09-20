@@ -36,3 +36,15 @@ python setup.py develop
 cd ..
 
 ```
+
+## Usage
+
+1. copy `scripts/blender_smplx.py` to Blender and run
+
+2. copy `*.npz` to `path/to/amass_blender/data/`
+
+3. run `scripts/visualize_smplx.py` to visualize
+
+| Note: `blender_scripts` and `main_convert_blender`  will be abandoned by the next version.
+
+
